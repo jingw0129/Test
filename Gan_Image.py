@@ -5,10 +5,10 @@ import cv2
 from torchvision import datasets, transforms
 import numpy as np
 
-epoch_n =1
-batchsize = 128
+epoch_n =10
+batch_size = 128
 
-
+torch.manual_seed(1)
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5,), (0.5,)),
                                 ])
@@ -18,12 +18,13 @@ trainset = datasets.MNIST('PATH_TO_STORE_TRAINSET', download=True, train=True, t
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
 #  randomly assign a torch tensor wrapped in pytorch variable, will be passed to generator net as the initial input
-def rand_img(batchsize,output_size):
-    Z = np.random.uniform(-1.,1., size=(batchsize, output_size))
-    Z = np.float32(Z)
-    Z = torch.from_numpy(Z)
-    Z = Variable(Z)
-    return Z
+def rand_img(batch_size,output_size):
+    noise = np.random.uniform(-1.,1., size=(batchs_ize, output_size))
+    #Images which passed to the interface requires a single piece of image with 3 channels.
+    noise = np.float32(noise)
+    noise = torch.from_numpy(noise)
+    noise = Variable(noise)
+    return noise
 
 class Discriminator(torch.nn.Module):
 
@@ -85,8 +86,8 @@ gen_images = []
 
 train_loss = []
 
-optimizer_dis = torch.optim.Adam(discriminator.parameters(),lr=0.0001)
-optimizer_gen = torch.optim.Adam(generator.parameters(),lr=0.0001)
+optimizer_dis = torch.optim.Adam(discriminator.parameters(),lr=0.001)
+optimizer_gen = torch.optim.Adam(generator.parameters(),lr=0.001)
 
 for epoch in range(epoch_n):
 
@@ -95,15 +96,14 @@ for epoch in range(epoch_n):
         X_train, y_train = batch
         X_train, y_train = Variable(X_train), Variable(y_train)
 
-        Z = rand_img(batchsize=batchsize, output_size=100)
+        noise = rand_img(batchsize=batchsize, output_size=100)
         # ----------------------------------------------------------------
 
         optimizer_dis.zero_grad()
-        X_gen = generator(Z)
+        X_gen = generator(noise)
         X_gen = X_gen.view(-1, 1, 28, 28)
         X_train = X_train.view(-1, 1, 28, 28)
 
-        # training dis model
         d_x_train = discriminator(X_train)
 
         d_gen = discriminator(X_gen)
@@ -112,24 +112,24 @@ for epoch in range(epoch_n):
 
         d_loss.backward(retain_graph=True)
         optimizer_dis.step()
+        
+        
         # -------------------------------------------------------------------------------------------
-        # training gen model
+        
         optimizer_gen.zero_grad()
 
-        Z = rand_img(batchsize=batchsize, output_size=100)
-        X_gen = generator(Z)
+        noise = rand_img(batchsize=batchsize, output_size=100)
+        X_gen = generator(noise)
         X_gen = X_gen.view(-1, 1, 28, 28)
         d_gen = discriminator(X_gen)
         g_loss = loss_f(d_gen, torch.ones_like(d_gen))
+        
         g_loss.backward()
         optimizer_gen.step()
 
-    # print("Epoch{}/{}...".format(epoch + 1, epoch_n),  "Discriminator Loss:{:.f}...".format(d_loss),
-    #                                                     "Generator Loss:{:.f}...".format(g_loss))
-
     train_loss.append((d_loss, g_loss))
 
-    gen_img = generator(Z)
+    gen_img = generator(noise)
     gen_images.append(gen_img)
 
 
