@@ -4,7 +4,7 @@ from mnist_net import Net
 from torchvision import datasets, transforms
 import cv2
 
-model_path = 'mnist_model/12model.pth'
+model_path = 'mnist_model/18model.pth'
 
 def test():
   correct_count, all_count = 0, 0
@@ -42,10 +42,9 @@ class SimpleInfer(object):
 
     def infer(inp: list):
         net = Net()
-        net.load_state_dict(torch.load(model_path), strict = False)
+        net.load_state_dict(torch.load(model_path)['net'], strict = False)
         net.eval()
-
-        torch.manual_seed(42)
+        torch.manual_seed(1)
         inp = cv2.cvtColor(inp, cv2.COLOR_BGR2GRAY)
         transform = transforms.Normalize((0.5,), (0.5,))
 
@@ -76,6 +75,6 @@ class SimpleInfer(object):
 # model = SimpleInfer.load_model(model_path)
 image = cv2.imread('./test_num.png')
 out_put = SimpleInfer.infer(image)
-cv2.imshow('num', image)
-cv2.waitKey()
+# cv2.imshow('num', image)
+# cv2.waitKey()
 print('pred', out_put)

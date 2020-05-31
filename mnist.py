@@ -23,6 +23,7 @@ valloader = torch.utils.data.DataLoader(valset, batch_size=64, shuffle=True)
 
 epochs = 15
 net = Net()
+torch.manual_seed(1)
 
 criterion = nn.NLLLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.003, momentum=0.9)
@@ -57,7 +58,12 @@ def train(epochs):
             print("\nTraining Time (in minutes) =", (time() - time0) / 60)
         # save model every 3 times iteration
         if e % 3 == 0:
-            torch.save(net.state_dict(), os.path.join('mnist_model', str(e) + 'model.pth'))
+            save_dict = {
+
+                "net": net.state_dict()
+
+            }
+            torch.save(save_dict, os.path.join('mnist_model', str(e) + 'model.pth'))
 
 def test():
   correct = 0
